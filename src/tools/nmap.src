@@ -41,8 +41,7 @@ scan_ip = function(ip)
 		port_info = router.port_info(port).split(" ")
 		output = [port.port_number, port_states[port.is_closed], port_info[0], port_info[1], port.get_lan_ip].join(" ")
 		output = lib_utils.io.apply_color("#CCCC00", output)
-		TABLE = TABLE + "
-" + output
+		TABLE = TABLE + "\n" + output
 	end for
 	
 	print(format_columns(TABLE))
@@ -64,14 +63,11 @@ datetime = current_date
 // Scan whole local network
 if lib_utils.argparse.has_arg("-a") and params[0] == "-a" then
 	startup_message = "Starting nmap " + version + " by " + author + " at " + datetime
-	startup_message = startup_message + "
-" + "Scanning the entire local network"
+	startup_message = startup_message + "\n" + "Scanning the entire local network"
 	lib_utils.io.print.info(startup_message)
 	
 	print
 	scan_whole_local_network()
-	print("
-")
 else
 	//Scan single ip address
 	ip = params[0]
