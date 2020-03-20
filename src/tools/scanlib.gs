@@ -68,8 +68,7 @@ scan = function()
 			asString = ""
 			for exploit in Export
 				for string in exploit.key.toString
-					asString = asString + string + "
-"
+					asString = asString + string + "\n"
 				end for
 			end for				
 			outFile.set_content(asString)
