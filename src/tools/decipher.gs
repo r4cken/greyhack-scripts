@@ -1,5 +1,5 @@
-#/home/ellie/include/utils.src
-#/home/ellie/include/crypto.src
+#/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/libs/crypto.src
 
 check_usage = function(usage)
 	if lib_utils.argparse.has_arg("-h") or lib_utils.argparse.has_arg("--help") or params.len == 0 then

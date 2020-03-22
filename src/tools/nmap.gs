@@ -1,5 +1,5 @@
 #core
-#/home/ellie/include/utils.src
+#/home/0xdead/include/libs/utils.src
 
 check_usage = function(usage)
 	if lib_utils.argparse.has_arg("-h") or lib_utils.argparse.has_arg("--help") or params.len == 0 or params.len > 1 then

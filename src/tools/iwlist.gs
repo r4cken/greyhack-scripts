@@ -1,4 +1,4 @@
-#/home/ellie/include/utils.src
+#/home/0xdead/include/libs/utils.src
 
 iwlist = function()
 	lib_utils.io.print.info("-- iwlist v2.0 by r4cken --")

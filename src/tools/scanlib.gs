@@ -1,5 +1,5 @@
-#/home/ellie/include/utils.src
-#/home/ellie/include/metaxploit.src
+#/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/libs/metaxploit.src
 
 scan = function()
 	metaxploit = lib_utils.library.include("metaxploit.so")
