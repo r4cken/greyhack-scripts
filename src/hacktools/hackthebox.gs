@@ -1,7 +1,7 @@
 #core
+#/home/0xdead/include/libs/crypto.src
 #/home/0xdead/include/libs/utils.src
 #/home/0xdead/include/libs/metaxploit.src
-#/home/0xdead/include/libs/crypto.src
 
 check_passwd_access = function(object)
 	lib_utils.io.print.info("* Checking access to /etc/passwd...")
@@ -27,7 +27,7 @@ check_passwd_access = function(object)
 				lib_utils.io.print.error("Error: Expected /etc folder but found " + file_object.path)
 				return false
 			end if
-		// We have a file, not folder
+			// We have a file, not folder
 		else
 			file = file_object
 		end if
@@ -51,7 +51,9 @@ get_passwd_file = function(object)
 	object_type = typeof(object)
 	
 	has_access = check_passwd_access(object)
-	if not has_access then return false
+	if not has_access then 
+		return false
+	end if
 	
 	if object_type == "shell" then
 		file = object.host_computer.File("/etc/passwd")
@@ -138,12 +140,17 @@ decipher_bank_accounts = function(bankfiles)
 	end for
 end function
 
+decipher_passwd_file = function(passwdfile)
+	lib_utils.io.print.info("* Deciphering passwd file...")
+	lib_crypto.decipher_file(passwdfile)
+end function
+
 start_shell = function(shell)
 	shell.start_terminal
 end function
 
 passwd_action = function(arg)
-	return {"action": @lib_crypto.decipher_file, "arg": arg, "description": "Decipher passwd file"}
+	return {"action": @decipher_passwd_file, "arg": arg, "description": "Decipher passwd file"}
 end function
 
 bank_action = function(arg)
@@ -163,20 +170,104 @@ choose_action = function(action_map)
 	while not action_map.hasIndex(option)
 		choose_action(action_map)
 	end while
-	
 	locals.chosen = action_map[option]
 	chosen.action(chosen.arg)
 end function
 
+find_valid_vulns = function(metapath, ip, port)
+	airlib = core.network.airlib(metapath, ip, port)
+	vulnerabilities = airlib.run.buffer
+	Exploits = {}
+	
+	// Setup gob keys
+	for vuln in vulnerabilities
+		address = vuln.split(" ")[0]
+		if not Exploits.hasIndex(address) then
+			Exploits[address] = {}
+		end if
+	end for
+	
+	// Gob content for key
+	for vuln in vulnerabilities
+		address = vuln.split(" ")[0]
+		buffer = vuln.split(" ")[1]
+		type = vuln.split(" ")[2]
+		Exploits[address][buffer] = type
+	end for
+	
+	fileName = ip + "-" + port
+	save_to_disk(fileName, Exploits)
+end function
+
+save_to_disk = function(fileName, exploits)
+	computer = get_shell.host_computer
+	pathName = home_dir + "/targets"
+	if not computer.File(pathName) then
+		computer.create_folder(home_dir, "targets")
+	end if
+	core.io.format(exploits, fileName, pathName, ".gob")
+end function
+
+choose_vulnerable_address = function(valid_exploits)
+	SelectableExploits = {}
+	i = 1
+	for exploit in valid_exploits
+		SelectableExploits[i] = exploit
+		i = i + 1
+	end for
+	
+	print("Available exploits:")
+	numberOfExploits = SelectableExploits.len
+	j = 1
+	while j <= numberOfExploits
+		print(j + ". " + SelectableExploits[j].key)
+		j = j + 1
+	end while
+	print
+	
+	option = user_input("Select address:").to_int
+	
+	while not SelectableExploits.hasIndex(option)
+		option = user_input("Select address:").to_int
+	end while
+	
+	selected = SelectableExploits[option]
+	return selected
+end function
+
+choose_access_type = function(selected_address)
+	print("Available access types:")
+	for overflow in selected_address.value.indexes
+		print(selected_address.value[overflow])
+	end for
+	
+	found = false
+	foundoverflow = null
+	
+	option = user_input("Desired access type:").lower
+	
+	for overflowvalue in selected_address.value.indexes
+		if selected_address.value[overflowvalue] == option then
+			found = true
+			foundoverflow = overflowvalue
+			break
+		end if
+	end for
+	
+	if found then
+		return {"address": selected_address.key, "buffer": foundoverflow, "type": option}
+	else
+		choose_access_type(selected_address)
+	end if
+end function
+
 ip = lib_utils.argparse.get_arg("-ip")
 port = lib_utils.argparse.get_arg("-port")
-addr = lib_utils.argparse.get_arg("-a")
-unsafeval = lib_utils.argparse.get_arg("-o")
-optarg = lib_utils.argparse.get_arg("-optarg")
+optarg = false
 
 // Minimum requirement to use the program
-if not ip and not addr and not unsafeval then
-	lib_utils.program.usage("[-ip] [-port (opt)] [-a (addr)] [-o (overflow] [-optarg (opt)]")
+if not ip and not port or params.len == 0 then
+	lib_utils.program.usage("[-ip] [-port]")
 end if
 
 metalib = lib_metaxploit.establish_connection(ip, port)
@@ -184,11 +275,32 @@ if not metalib then
 	lib_utils.program.exit("Error: Can't establish a net session, check the ip and or port")
 end if
 
-result = lib_metaxploit.execute_exploit(metalib, addr, unsafeval, optarg)
+// If we have a gob file with exploit info, use it
+// if not make one, then parse it
+gobPathName = home_dir + "/targets"
+gobFileName = ip + "-" + port
+if not get_shell.host_computer.File(gobPathName + "/" + gobFileName) then
+	lib_utils.io.print.info("* Finding usable exploits...")
+	find_valid_vulns("/lib/metaxploit.so", ip, port)
+	print
+end if
+
+// get a selected exploit to run
+lib_utils.io.print.info("* Found these working exploits...")
+valid_exploits = core.io.gob(gobPathName + "/" + gobFileName).parse
+selected_address = choose_vulnerable_address(valid_exploits)
+final_exploit = choose_access_type(selected_address)
+// number exploits are password change exploits, so set hard coded password
+if final_exploit.type == "number" then
+	optarg = "r4cken"
+end if
+
+result = lib_metaxploit.execute_exploit(metalib, final_exploit.address, final_exploit.buffer, optarg)
 if not result then 
 	lib_utils.program.exit("Error: Exploit failed")
 end if
 
+print("Type of exploit: " + typeof(result))
 // Exfiltrated data
 passwd_file = get_passwd_file(result)
 bank_files = get_bank_files(result)
@@ -223,7 +335,6 @@ else if exploit_type == "computer" then
 		SupportedActions[i] = bank_action(bank_files)
 		i = i + 1
 	end if
-	
 	choose_action(SupportedActions)
 else if exploit_type == "file" then
 	i = 1
@@ -241,3 +352,4 @@ else if exploit_type == "number" then
 else
 	lib_utils.program.exit("Error: Unknown type of exploit")
 end if
+

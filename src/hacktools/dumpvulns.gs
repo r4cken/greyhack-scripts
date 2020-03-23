@@ -6,25 +6,34 @@ dump_valid_vulns = function(metapath, ip, port)
 	vulnerabilities = airlib.run.buffer
 	print(core.style.set("Valid exploits found...", "color=#ffffff").text)
 	Exploits = {}
+	
+	// Setup gob keys
+	for vuln in vulnerabilities
+		address = vuln.split(" ")[0]
+		if not Exploits.hasIndex(address) then
+			Exploits[address] = {}
+		end if
+	end for
 
-	i = 0
+	// Gob content for key
 	for vuln in vulnerabilities
 		address = vuln.split(" ")[0]
 		buffer = vuln.split(" ")[1]
-		type = vuln.split(" ")[2]	
-		Exploits[i] = {"target":{"ip": ip, "port": port}, "exploit": {"addr": address, "buff": buffer, "type": type}}
-		i = i + 1
-		print(core.style.set(vuln, "color=yellow").text)
+		type = vuln.split(" ")[2]
+		Exploits[address][buffer] = type
 	end for
-	lib_utils.io.print.info("Saving information to disk...")
-	save_to_disk(Exploits)
+	
+	fileName = ip + "-" + port
+	save_to_disk(fileName, Exploits)
 end function
 
-save_to_disk = function(exploit_map)
+save_to_disk = function(fileName, exploits)
 	computer = get_shell.host_computer
 	pathName = home_dir + "/targets"
-	fileName = exploit_map[0].target.ip + "." + exploit_map[0].target.port + ".gob"
-	core.io.format(exploit_map, fileName, pathName, ".gob")
+	if not computer.File(pathName) then
+		computer.create_folder(home_dir, "targets")
+	end if
+	core.io.format(exploits, fileName, pathName, ".gob")
 end function
 
 metapath = "/lib/metaxploit.so"
@@ -36,3 +45,6 @@ if not port and not ip or params.len == 0 then
 end if
 
 dump_valid_vulns(metapath, ip, port)
+
+
+

@@ -23,14 +23,15 @@ _crypto_decipher_file = function(self, file)
 	if not file then exit("Error: File doesn't exist")
 	if not file.has_permission("r") then exit("Error: Permission denied")
 	if file.content.len == 0 then exit("Error: File is empty")
-
+	
 	DecryptedInfo = {}
 	entries = file.content.split("\n")
 	for entry in entries
+		// happens for empty rows
+		if entry == "" then continue
 		encdata = entry.split(":")
 		DecryptedInfo.push({"user": encdata[0], "password": self.decipher(encdata)})
 	end for
-	
 	print("<color=#f0e44e>Deciphering " + file.path + "</color>")
 	for entry in DecryptedInfo
 		if not entry.key.password then 
@@ -58,7 +59,7 @@ _crypto_smtp_user_list = function(self, ip, port)
 			print("<color=#db3437>Error: " + mailinfo + "</color>")
 			return false
 		end if
-	
+		
 		print("<color=#f0e44e>Looking for email addresses...</color>")
 		for email in mailinfo
 			user = email[0:email.indexOf(" ")]
@@ -89,6 +90,4 @@ _crypto_smtp_user_list = function(self, ip, port)
 end function
 
 lib_crypto = {"dependencies": {"crypto": false, "get_dependency": @_crypto_get_dependency }, "decipher": @_crypto_decipher, "decipher_file": @_crypto_decipher_file, "smtp_dump": @_crypto_smtp_user_list}
-
-
 

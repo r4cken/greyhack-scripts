@@ -11,13 +11,14 @@ iwlist = function()
 		essid = network_info[2]
 		Networks.push({"bssid": bssid, "pwr": pwr, "essid": essid})
 	end for
-
+	
 	Networks.sort("pwr")
 	info = lib_utils.io.apply_color("#FFFFFF", "BSSID PWR ESSID")
 	for network in Networks
 		output = network.bssid + " " + network.pwr + " " + network.essid
 		output = lib_utils.io.apply_color("#f0e44e", output)
-		info = info + "\n" + output
+		info = info + "
+" + output
 	end for
 	print(format_columns(info))
 end function

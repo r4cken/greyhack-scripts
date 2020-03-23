@@ -237,11 +237,11 @@ else
 	if get_shell.host_computer.File(args[0]).is_binary then
 		exit("gpp.exe > " + args[0] + " is a binary.")
 	else
-	// build in present working dir
+		// build in present working dir
 		if args[1] == "." then
 			args[1] = get_shell.host_computer.current_path
 		end if
-	
+		
 		if not typeof(get_shell.host_computer.File(args[1])) == "file" then
 			exit("gpp.exe > " + args[1] + " cannot be found.")
 		else

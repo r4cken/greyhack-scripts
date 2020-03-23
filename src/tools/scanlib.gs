@@ -23,7 +23,7 @@ scan = function()
 	
 	vulnerabilities = metaxploit.scan(metalib)
 	if not vulnerabilities then lib_utils.program.exit("Error: Found no vulnerable memory locations in metalib library")
-
+	
 	Export = {}
 	for addr in vulnerabilities
 		exploit = {"addr": addr, "unsafevalues": [], "toString": []}
@@ -62,7 +62,7 @@ scan = function()
 		if not computer.touch(pathName, fileName) then 
 			lib_utils.program.exit("Unable to create vulnerabilties analysis file")
 		end if
-	
+		
 		outFile = computer.File(pathName + "/" + fileName)
 		if outFile then
 			asString = ""
@@ -94,5 +94,3 @@ end function
 
 check_usage("Usage: [-input (metalib name || ip address)] [-port (if using ip address)] [-save (opt save scan to disk)]")
 scan()
-
-

@@ -18,7 +18,7 @@ run_program = function(arg)
 		end if
 		lib_utils.io.print.info(encdata[0] + " => " + password)
 	else
-		lib_crypto.decipher_file(arg)
+		lib_crypto.decipher_file(input)
 	end if
 end function
 
