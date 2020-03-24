@@ -1,7 +1,7 @@
 #core
-#/home/0xdead/include/libs/utils.src
-#/home/0xdead/include/libs/crypto.src
-#/home/0xdead/include/libs/metaxploit.src
+#/home/0xdead/include/utils.src
+#/home/0xdead/include/crypto.src
+#/home/0xdead/include/metaxploit.src
 
 check_passwd_access = function(object)
 	lib_utils.io.print.info("* Checking access to /etc/passwd...")

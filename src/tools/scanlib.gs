@@ -1,5 +1,5 @@
-#/home/0xdead/include/libs/utils.src
-#/home/0xdead/include/libs/metaxploit.src
+#/home/0xdead/include/utils.src
+#/home/0xdead/include/metaxploit.src
 newline = char(10)
 
 scan = function()

@@ -1,4 +1,4 @@
-#/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/utils.src
 
 check_usage = function(usage)
 	if lib_utils.argparse.has_arg("-h") or lib_utils.argparse.has_arg("--help") or params.len == 0 then

@@ -1,4 +1,4 @@
-#/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/utils.src
 newline = char(10)
 
 iwlist = function()

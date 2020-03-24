@@ -1,5 +1,5 @@
 #core
-#/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/utils.src
 
 dump_valid_vulns = function(metapath, ip, port)
 	airlib = core.network.airlib(metapath, ip, port)

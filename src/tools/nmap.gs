@@ -1,5 +1,5 @@
 #core
-#/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/utils.src
 newline = char(10)
 
 scan_ip = function(ipAddress)
