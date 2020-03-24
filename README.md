@@ -105,7 +105,7 @@ print(core.io.gob("/home/user/address.gob").parse
 gives the output
 ```
 {"myGob": {"somename": "gobject", "contact": "support@gpp.com"}, "a": {"aname": "gobgob", "contact": "support@gobgob"}}
-``
+```
 
 I use this to save vulnerability data such as what address is exploitable, its buffer overflow value and what type of handle i get from using it
 such as computer,file,shell or password reset capabilities. I can then read this information from disk and use it in my automated hacking.
