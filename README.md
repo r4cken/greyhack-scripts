@@ -14,6 +14,10 @@ When you save these scripts inside Greyhack, please make sure to save them with 
 * Grey Hack g++/gpp 2.1.9 (forked and modified in this repository)
 * https://ghcommunity.cc/t/g-v2-1-9/159 (original compiler and basic runthrough of its usage with documentation, much still applies to my fork)
 
+## Optional dependencies
+* JiT (Json it) Json Parser V1.2.2 (forked and modified in this repository)
+* https://ghcommunity.cc/t/jit-json-it-json-parser-v1-2-2/175
+
 ## Dependency installation
 * Build the compiler gpp.gs using the in-game code editor or commandline tool "build" and save the binary to /bin
 * Place the compiler corelib.gs in a new file at /lib/corelib.src
@@ -79,54 +83,27 @@ myclasslib.system.alert("Hello from my lib!")
 * core.network : used to manage networking
 * core.network.airlib(metapath,addr,port) : used to remotely scan a target lib for vulnerabilities
 
-## what is gob and how can i use it?
-"gob" or "Grey Object" is an external file format much like json or css. It allows you to save data in a structured
-way to disk and allow you to parse it back into an object structure in "memory", keeping the structure intact.
 
-### Reading a gob file
-```
-myGob
-somename=gobject
-contact=support@gpp.com;
-a
-somename=gobgob
-contact=support@gobgob.com;
-```
-
-where *myGob* becomes the key
-and something=somevalue are members under the key myGob
-
-using the script *gobtest.src*
-```
-#core
-print(core.io.gob("/home/user/address.gob").parse
-```
-
-gives the output
-```
-{"myGob": {"somename": "gobject", "contact": "support@gpp.com"}, "a": {"aname": "gobgob", "contact": "support@gobgob"}}
-```
-
+# JiT(Json it)
 I use this to save vulnerability data such as what address is exploitable, its buffer overflow value and what type of handle i get from using it
 such as computer,file,shell or password reset capabilities. I can then read this information from disk and use it in my automated hacking.
 
-### Writing a gob file
+You can make a json object by creating a normal map object with entries and writing that to disk like this
+```
+myJsonObject = {"name": "r4cken", "libs": ["/lib/net.so", "/lib/metaxploit.so"]}
+streamout = core.io.sout("/home/0xdead/json_test.json", myJsonObject)
+streamout.write
+```
+
+Reading a json file into an object is done like this
 ```
 #core
+#/home/0xdead/include/json.src
 
-myitem = {"sword":{"price":"150","attack":"300"},"potion":{"health":"10"}}
-core.io.format(myitem,"inventory","/home/user",".gob")
-```
-
-writes the structure to disk that looks like this
-```
-sword
-price=150
-attack=300
-;
-potion
-health=10
-;
+plain_json = core.io.sin("/home/0xdead/json_test.json").read
+jObject = {}
+json = lib_json.parse(plain_json,jObject,false)
+print(json)
 ```
 
 # Reading material
