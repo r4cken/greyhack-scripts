@@ -1,5 +1,6 @@
 #/home/0xdead/include/libs/utils.src
 #/home/0xdead/include/libs/metaxploit.src
+newline = char(10)
 
 scan = function()
 	metaxploit = lib_utils.library.include("metaxploit.so")
@@ -68,7 +69,7 @@ scan = function()
 			asString = ""
 			for exploit in Export
 				for string in exploit.key.toString
-					asString = asString + string + "\n"
+					asString = asString + string + newline
 				end for
 			end for				
 			outFile.set_content(asString)

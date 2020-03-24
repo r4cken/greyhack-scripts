@@ -37,8 +37,9 @@ end function
 // Returns the metalib on success
 _metaxploit_establish_connection = function(self, ip, port)
 	metaxploit = self.dependencies.get_dependency("metaxploit.so")
-	if ip then
+	if is_valid_ip(ip) then
 		if port then
+			print("metexploit establish_connection")
 			net_session = metaxploit.net_use(ip, port.to_int)
 		else
 			net_session = metaxploit.net_use(ip)
@@ -86,4 +87,3 @@ _metaxploit_execute_exploit = function(exploit_target, addr, unsafeval, optarg)
 end function
 
 lib_metaxploit = {"dependencies": {"lib_utils": false, "metaxploit": false, "get_dependency": @_metaxploit_get_dependency }, "establish_connection": @_metaxploit_establish_connection, "get_metalib": @_metaxploit_get_metalib, "get_metalib_info": @_metaxploit_metalib_info, "execute_exploit": @_metaxploit_execute_exploit}
-

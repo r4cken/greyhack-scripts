@@ -36,21 +36,21 @@ end function
 
 _io_print_info = function(text)
 	color = {"info": "#f0e44e"}
-	for line in text.split("\n")
+	for line in text.split(char(10)) // newline
 		print(_io_apply_color(color.info, line))
 	end for
 end function
 
 _io_print_error = function(text)
 	color = {"error": "#db3437"}
-	for line in text.split("\n")
+	for line in text.split(char(10))
 		print(_io_apply_color(color.error, line))
 	end for
 end function
 
 _io_print_success = function(text)
 	color = {"success": "#4bde5c"}
-	for line in text.split("\n")
+	for line in text.split(char(10))
 		print(_io_apply_color(color.success, line))
 	end for
 end function
@@ -85,5 +85,3 @@ _program_exit = function(text)
 end function
 
 lib_utils = {"library": {"include": @_library_include_lib, "include_metalib": @_library_include_metalib, "library_information": @_library_metalib_info}, "program": {"name":@_program_get_name, "usage":@_program_usage, "exit": @_program_exit}, "argparse":{"get_arg":@_argparse_get_arg, "has_arg":@_argparse_has_arg}, "io": { "apply_color":@_io_apply_color, "print": {"info": @_io_print_info, "error":@_io_print_error, "success":@_io_print_success}}}
-
-

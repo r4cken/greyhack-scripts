@@ -1,5 +1,6 @@
 #core
 #/home/0xdead/include/libs/utils.src
+newline = char(10)
 
 scan_ip = function(ipAddress)
 	isLanIp = is_lan_ip( ipAddress )
@@ -33,9 +34,9 @@ scan_ip = function(ipAddress)
 		if(port.is_closed and not isLanIp) then
 			port_status = "closed"
 		end if
-		info = info + "\n" + port.port_number + " " + port_status + " " + service_info + " " + lan_ips
+		info = info + newline + port.port_number + " " + port_status + " " + service_info + " " + lan_ips
 	end for
-	print(format_columns(info) + "\n")
+	print(format_columns(info) + newline)
 end function
 
 scan_whole_local_net = function()

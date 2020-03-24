@@ -45,6 +45,3 @@ if not port and not ip or params.len == 0 then
 end if
 
 dump_valid_vulns(metapath, ip, port)
-
-
-

@@ -25,7 +25,7 @@ _crypto_decipher_file = function(self, file)
 	if file.content.len == 0 then exit("Error: File is empty")
 	
 	DecryptedInfo = {}
-	entries = file.content.split("\n")
+	entries = file.content.split(char(10))
 	for entry in entries
 		// happens for empty rows
 		if entry == "" then continue
@@ -90,4 +90,3 @@ _crypto_smtp_user_list = function(self, ip, port)
 end function
 
 lib_crypto = {"dependencies": {"crypto": false, "get_dependency": @_crypto_get_dependency }, "decipher": @_crypto_decipher, "decipher_file": @_crypto_decipher_file, "smtp_dump": @_crypto_smtp_user_list}
-

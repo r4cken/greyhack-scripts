@@ -1,6 +1,6 @@
 #core
-#/home/0xdead/include/libs/crypto.src
 #/home/0xdead/include/libs/utils.src
+#/home/0xdead/include/libs/crypto.src
 #/home/0xdead/include/libs/metaxploit.src
 
 check_passwd_access = function(object)
@@ -166,6 +166,7 @@ choose_action = function(action_map)
 	for action in action_map
 		lib_utils.io.print.info(action.key + ". " + action.value.description)
 	end for
+	print("choose action function")
 	option = user_input("What would you like to do?: ").to_int
 	while not action_map.hasIndex(option)
 		choose_action(action_map)
@@ -195,7 +196,13 @@ find_valid_vulns = function(metapath, ip, port)
 		Exploits[address][buffer] = type
 	end for
 	
-	fileName = ip + "-" + port
+	// In case target is a router
+	if not port then
+		fileName = ip + "-" + "0"
+	else
+		fileName = ip + "-" + port
+	end if
+	
 	save_to_disk(fileName, Exploits)
 end function
 
@@ -224,7 +231,6 @@ choose_vulnerable_address = function(valid_exploits)
 		j = j + 1
 	end while
 	print
-	
 	option = user_input("Select address:").to_int
 	
 	while not SelectableExploits.hasIndex(option)
@@ -266,19 +272,26 @@ port = lib_utils.argparse.get_arg("-port")
 optarg = false
 
 // Minimum requirement to use the program
-if not ip and not port or params.len == 0 then
-	lib_utils.program.usage("[-ip] [-port]")
+if not ip or params.len == 0 then
+	lib_utils.program.usage("[-ip] [-port (opt)]")
 end if
 
 metalib = lib_metaxploit.establish_connection(ip, port)
 if not metalib then
 	lib_utils.program.exit("Error: Can't establish a net session, check the ip and or port")
 end if
+lib_utils.io.print.info("Targeting " + metalib.lib_name + " v" + metalib.version)
 
-// If we have a gob file with exploit info, use it
-// if not make one, then parse it
+// If we have a gob file with exploit info, use it, else make one
 gobPathName = home_dir + "/targets"
-gobFileName = ip + "-" + port
+// In case target is a router
+if port then
+	gobFileName = ip + "-" + port
+else
+	gobFileName = ip + "-" + "0"
+end if
+
+print("gobFileName: " + gobFileName)
 if not get_shell.host_computer.File(gobPathName + "/" + gobFileName) then
 	lib_utils.io.print.info("* Finding usable exploits...")
 	find_valid_vulns("/lib/metaxploit.so", ip, port)
@@ -287,12 +300,19 @@ end if
 
 // get a selected exploit to run
 lib_utils.io.print.info("* Found these working exploits...")
-valid_exploits = core.io.gob(gobPathName + "/" + gobFileName).parse
+gobFullPath = gobPathName + "/" + gobFileName
+print("gobFullPath: " + gobFullPath)
+valid_exploits = core.io.gob(gobFullPath).parse
 selected_address = choose_vulnerable_address(valid_exploits)
 final_exploit = choose_access_type(selected_address)
-// number exploits are password change exploits, so set hard coded password
+
+// number exploits are password change exploits or for routers, a LAN ip is needed
 if final_exploit.type == "number" then
-	optarg = "r4cken"
+	if port then
+		optarg = "r4cken"
+	else
+		optarg = user_input("Target is a router, please supply a LAN ip: ")
+	end if
 end if
 
 result = lib_metaxploit.execute_exploit(metalib, final_exploit.address, final_exploit.buffer, optarg)
@@ -300,7 +320,6 @@ if not result then
 	lib_utils.program.exit("Error: Exploit failed")
 end if
 
-print("Type of exploit: " + typeof(result))
 // Exfiltrated data
 passwd_file = get_passwd_file(result)
 bank_files = get_bank_files(result)
@@ -352,4 +371,3 @@ else if exploit_type == "number" then
 else
 	lib_utils.program.exit("Error: Unknown type of exploit")
 end if
-

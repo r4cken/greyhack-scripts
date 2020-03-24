@@ -1,4 +1,5 @@
 #/home/0xdead/include/libs/utils.src
+newline = char(10)
 
 iwlist = function()
 	lib_utils.io.print.info("-- iwlist v2.0 by r4cken --")
@@ -17,8 +18,7 @@ iwlist = function()
 	for network in Networks
 		output = network.bssid + " " + network.pwr + " " + network.essid
 		output = lib_utils.io.apply_color("#f0e44e", output)
-		info = info + "
-" + output
+		info = info + newline + output
 	end for
 	print(format_columns(info))
 end function
