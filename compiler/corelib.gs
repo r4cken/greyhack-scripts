@@ -1,9 +1,4 @@
-//Built-in Libs, this is where built-in libs are constructed.They
-//come in two part the plain code is for th compiler itself.
-//The second part is for the user code.Libs are called through user
-//code using # symbol as key #mylib.Those are called pre-processor, the
-//pre-processor work like any other language.They have to be put line by 
-//line and only one by line, if not the user will have build errors.
+//Core library - These are the built-in libraries and functions that are shipped with the compiler suite.
 
 //iolib #filesystem#
 _sfile = function(self)
@@ -213,5 +208,5 @@ _aairlib = function(metapath,addr,port)
 	return {"metapath":metapath,"addr":addr,"port":port,"run":@_airlib,"classID":"Core.Network.Lib.Scan.Object"}
 end function
 
-//Lib Objects
+//Library objects
 core = {"io":{"sout":@_ssout,"sin":@_ssin,"gob":@_ggob,"format":@_format},"style":{"set":@_style},"network":{"airlib":@_aairlib},"classID":"CoreLib 2.1.9"}

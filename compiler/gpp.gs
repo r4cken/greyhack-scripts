@@ -1,4 +1,13 @@
+// The compiler is in essence a pre-processor that injects small self
+// contained libraries into your program source code making it easier to
+// reuse parts of your code that has shared functionality.
+
+// The core library is included by placing #core on a line of its own
+// making all of its functionality available for use in your progams
+// If you want to include your own custom made libraries then you have to
+// place #full_library_path on a single line on its own.
 //------------------------------------------------------------------------------
+//minimum req from core lib included to support the compilers needs
 _sout = function(self)
 	if typeof(get_shell.host_computer.File(self.dir)) == "file" then
 		return get_shell.host_computer.File(self.dir).set_content(self.text)
@@ -40,20 +49,19 @@ end function
 _ssin = function(dir)
 	return {"dir":dir,"read":@_sin,"classID":"Core.Io.Stream.In.Object"}
 end function
-//------------------------------------------------------------------------------
-//minimum req from core lib included above to support the compiler itself
 core = {"io":{"sout":@_ssout,"sin":@_ssin},"classID":"CoreLib 2.1.9"}
+//------------------------------------------------------------------------------
 
-//args parser
 args = params
 if args.len != 2 then exit("gpp.exe [source fullname] [build path].")
 
-// Do we have the needed compiler core lib?
+// Do we have the needed core lib for the compiler to work?
 core_lib = get_shell.host_computer.File("/lib/corelib.src")
 if not typeof(core_lib) == "file" then
 	exit("gpp.exe > missing compiler core library /lib/corelib.src")
 end if
 
+// Have we supplied the correct arguments to the compiler?
 if not typeof(get_shell.host_computer.File(args[0])) == "file" then
 	exit("gpp.exe > " + args[0] + " could not be found.")
 else
@@ -82,10 +90,9 @@ else
 	end if
 end if
 
-//parsing the content & building it.
+//parsing the source content & building the binary.
 streamin = core.io.sin(args[0])
 source = streamin.read
-
 if source.len > 0 then
 	unclean_code = source
 	clean_code = ""
@@ -124,6 +131,7 @@ streamout = core.io.sout(args[0],code)
 streamout.write
 
 get_shell.build(args[0],args[1])
-//reset the source code to it's orginal content
+
+//After pre-processing, restore the source code to the original content
 streamout.text = unclean_code
 streamout.write
