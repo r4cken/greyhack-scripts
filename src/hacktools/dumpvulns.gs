@@ -1,29 +1,30 @@
 #core
 #/home/0xdead/include/utils.src
 
-dump_valid_vulns = function(metapath, ip, port)
+find_valid_vulns = function(metapath, ip, port)
 	airlib = core.network.airlib(metapath, ip, port)
 	vulnerabilities = airlib.run.buffer
-	print(core.style.set("Valid exploits found...", "color=#ffffff").text)
 	Exploits = {}
-	
-	// Setup gob keys
+	// Setup json structure
 	for vuln in vulnerabilities
 		address = vuln.split(" ")[0]
 		if not Exploits.hasIndex(address) then
-			Exploits[address] = {}
+			Exploits[address] = []
 		end if
 	end for
 
-	// Gob content for key
 	for vuln in vulnerabilities
 		address = vuln.split(" ")[0]
 		buffer = vuln.split(" ")[1]
 		type = vuln.split(" ")[2]
-		Exploits[address][buffer] = type
+		Exploits[address].push({"buffer": buffer, "type": type})
 	end for
-	
-	fileName = ip + "-" + port
+
+	if port then
+		fileName = ip + "-" + port
+	else
+		fileName = ip + "-" + 0
+	end if
 	save_to_disk(fileName, Exploits)
 end function
 
@@ -33,7 +34,8 @@ save_to_disk = function(fileName, exploits)
 	if not computer.File(pathName) then
 		computer.create_folder(home_dir, "targets")
 	end if
-	core.io.format(exploits, fileName, pathName, ".gob")
+	streamout = core.io.sout(pathName + "/" + fileName, exploits)
+	streamout.write
 end function
 
 metapath = "/lib/metaxploit.so"

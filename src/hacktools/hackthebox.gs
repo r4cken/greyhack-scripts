@@ -1,5 +1,6 @@
 #core
 #/home/0xdead/include/utils.src
+#/home/0xdead/include/json.src
 #/home/0xdead/include/crypto.src
 #/home/0xdead/include/metaxploit.src
 
@@ -180,29 +181,26 @@ find_valid_vulns = function(metapath, ip, port)
 	vulnerabilities = airlib.run.buffer
 	Exploits = {}
 	
-	// Setup gob keys
+	// Setup json structure
 	for vuln in vulnerabilities
 		address = vuln.split(" ")[0]
 		if not Exploits.hasIndex(address) then
-			Exploits[address] = {}
+			Exploits[address] = []
 		end if
 	end for
 	
-	// Gob content for key
 	for vuln in vulnerabilities
 		address = vuln.split(" ")[0]
 		buffer = vuln.split(" ")[1]
 		type = vuln.split(" ")[2]
-		Exploits[address][buffer] = type
+		Exploits[address].push({"buffer": buffer, "type": type})
 	end for
 	
-	// In case target is a router
-	if not port then
-		fileName = ip + "-" + "0"
-	else
+	if port then
 		fileName = ip + "-" + port
+	else
+		fileName = ip + "-" + 0
 	end if
-	
 	save_to_disk(fileName, Exploits)
 end function
 
@@ -212,7 +210,9 @@ save_to_disk = function(fileName, exploits)
 	if not computer.File(pathName) then
 		computer.create_folder(home_dir, "targets")
 	end if
-	core.io.format(exploits, fileName, pathName, ".gob")
+	lib_utils.io.print.info("* Saving vulnerabilities found to " + pathName + "/" + fileName)
+	streamout = core.io.sout(pathName + "/" + fileName, exploits)
+	streamout.write
 end function
 
 choose_vulnerable_address = function(valid_exploits)
@@ -242,29 +242,30 @@ choose_vulnerable_address = function(valid_exploits)
 end function
 
 choose_access_type = function(selected_address)
-	print("Available access types:")
-	for overflow in selected_address.value.indexes
-		print(selected_address.value[overflow])
+	SelectableAccess = {}
+	i = 1
+	for exploit in selected_address.value
+		SelectableAccess[i] = exploit
+		i = i + 1
 	end for
+
+	print("Available access through " + selected_address.key)
+	numberOfExploits = SelectableAccess.len
+	j = 1
+	while j <= numberOfExploits
+		print(j + ". " + "buffer: " + SelectableAccess[j].buffer + ", " + "type: " + SelectableAccess[j].type)
+		j = j + 1
+	end while
+	print
 	
-	found = false
-	foundoverflow = null
+	option = user_input("Select buffer that has the access wanted:").to_int
 	
-	option = user_input("Desired access type:").lower
+	while not SelectableAccess.hasIndex(option)
+		option = user_input("Select buffer that has the access wanted:").to_int
+	end while
 	
-	for overflowvalue in selected_address.value.indexes
-		if selected_address.value[overflowvalue] == option then
-			found = true
-			foundoverflow = overflowvalue
-			break
-		end if
-	end for
-	
-	if found then
-		return {"address": selected_address.key, "buffer": foundoverflow, "type": option}
-	else
-		choose_access_type(selected_address)
-	end if
+	selected = SelectableAccess[option]
+	return {"address": selected_address.key, "exploit": selected}
 end function
 
 ip = lib_utils.argparse.get_arg("-ip")
@@ -282,17 +283,17 @@ if not metalib then
 end if
 lib_utils.io.print.info("Targeting " + metalib.lib_name + " v" + metalib.version)
 
-// If we have a gob file with exploit info, use it, else make one
-gobPathName = home_dir + "/targets"
+// If we have a json file with exploit info, use it, else make one
+jsonPath = home_dir + "/targets"
+
 // In case target is a router
 if port then
-	gobFileName = ip + "-" + port
+	jsonFileName = ip + "-" + port
 else
-	gobFileName = ip + "-" + "0"
+	jsonFileName = ip + "-" + "0"
 end if
 
-print("gobFileName: " + gobFileName)
-if not get_shell.host_computer.File(gobPathName + "/" + gobFileName) then
+if not get_shell.host_computer.File(jsonPath + "/" + jsonFileName) then
 	lib_utils.io.print.info("* Finding usable exploits...")
 	find_valid_vulns("/lib/metaxploit.so", ip, port)
 	print
@@ -300,14 +301,15 @@ end if
 
 // get a selected exploit to run
 lib_utils.io.print.info("* Found these working exploits...")
-gobFullPath = gobPathName + "/" + gobFileName
-print("gobFullPath: " + gobFullPath)
-valid_exploits = core.io.gob(gobFullPath).parse
-selected_address = choose_vulnerable_address(valid_exploits)
-final_exploit = choose_access_type(selected_address)
+jsonFullPath = jsonPath + "/" + jsonFileName
 
+json_exploits = core.io.sin(jsonFullPath).read
+jObject = {}
+valid_exploits = lib_json.parse(json_exploits,jObject,false)
+selected_address = choose_vulnerable_address(valid_exploits)
+final = choose_access_type(selected_address)
 // number exploits are password change exploits or for routers, a LAN ip is needed
-if final_exploit.type == "number" then
+if final.exploit.type == "number" then
 	if port then
 		optarg = "r4cken"
 	else
@@ -315,7 +317,7 @@ if final_exploit.type == "number" then
 	end if
 end if
 
-result = lib_metaxploit.execute_exploit(metalib, final_exploit.address, final_exploit.buffer, optarg)
+result = lib_metaxploit.execute_exploit(metalib, final.address, final.exploit.buffer, optarg)
 if not result then 
 	lib_utils.program.exit("Error: Exploit failed")
 end if
