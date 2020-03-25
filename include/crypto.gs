@@ -12,11 +12,34 @@ _crypto_get_dependency = function(self)
 end function
 
 _crypto_decipher = function(self, encdata)
+	save_to_dictionary = function(decrypted_password)
+		filePath = home_dir + "/"
+		fileName = "dictionary.dict"
+		if not get_shell.host_computer.File(filePath + fileName) then
+			get_shell.host_computer.touch(home_dir, fileName)
+		else
+			passwd_dictionary = get_shell.host_computer.File(filePath + fileName)
+			has_entry_already = passwd_dictionary.content.split(char(10)).indexOf(decrypted_password) != null
+			if passwd_dictionary.content.len == 0 then
+				print("First password to go into the file!")
+				passwd_dictionary.set_content(decrypted_password)
+			else if not has_entry_already then
+				updated_dictionary = [passwd_dictionary.content]
+				updated_dictionary.push(decrypted_password)
+				passwd_dictionary.set_content(updated_dictionary.join(char(10)))
+			end if
+		end if
+	end function
+	
 	cryptolib = self.dependencies.get_dependency()
 	if encdata.len != 2 then
 		exit("decipher: wrong number of arguments")
 	end if
-	return cryptolib.decipher(encdata[0], encdata[1])
+	
+	password = cryptolib.decipher(encdata[0], encdata[1])
+	
+	save_to_dictionary(password)
+	return password
 end function
 
 _crypto_decipher_file = function(self, file)
@@ -89,4 +112,4 @@ _crypto_smtp_user_list = function(self, ip, port)
 	end if	
 end function
 
-lib_crypto = {"dependencies": {"crypto": false, "get_dependency": @_crypto_get_dependency }, "decipher": @_crypto_decipher, "decipher_file": @_crypto_decipher_file, "smtp_dump": @_crypto_smtp_user_list}
+lib_crypto = {"dependencies": {"crypto": false, "get_dependency": @_crypto_get_dependency }, "decipher": @_crypto_decipher, "decipher_file": @_crypto_decipher_file, "smtp_dump": @_crypto_smtp_user_list, "classID":"CryptoLib 1.0.0"}

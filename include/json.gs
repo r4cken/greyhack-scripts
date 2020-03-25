@@ -1,5 +1,5 @@
 //json to string 
-_json_jsonToString = function(self,text)
+_json_toString = function(text)
 	//removing hided character, especially tabs.
 	removeTab = function(text)
 		cleanedText = ""
@@ -54,7 +54,7 @@ _json_parse = function(plain_json,jObject,isValues)
 	end function
 	
 	//variables default values
-	jstring = self.jsonToString(plain_json)
+	jstring = self.toString(plain_json)
 	currentItem = ""
 	keyword = ""
 	
@@ -100,6 +100,8 @@ _json_parse = function(plain_json,jObject,isValues)
 			itemName = itemName + c
 			if c == ":" then
 				itemName = itemName.replace(",","").replace(":","").trim
+				// Json keys are denoted with quotes, we strip them so that the
+				// inserted itemName key is a string, and the json file keeps its key shape
 				itemName = itemName.replace("""", "").trim
 				isItemName = false
 			end if
@@ -207,4 +209,4 @@ _json_parse = function(plain_json,jObject,isValues)
 	return jObject
 end function
 
-lib_json = {"parse":@_json_parse,"jsonToString":@_json_jsonToString}
+lib_json = {"parse":@_json_parse,"toString":@_json_toString, "classID":"JsonLib 1.0.0"}

@@ -84,4 +84,4 @@ _program_exit = function(text)
 	exit
 end function
 
-lib_utils = {"library": {"include": @_library_include_lib, "include_metalib": @_library_include_metalib, "library_information": @_library_metalib_info}, "program": {"name":@_program_get_name, "usage":@_program_usage, "exit": @_program_exit}, "argparse":{"get_arg":@_argparse_get_arg, "has_arg":@_argparse_has_arg}, "io": { "apply_color":@_io_apply_color, "print": {"info": @_io_print_info, "error":@_io_print_error, "success":@_io_print_success}}}
+lib_utils = {"library": {"include": @_library_include_lib, "include_metalib": @_library_include_metalib, "library_information": @_library_metalib_info}, "program": {"name":@_program_get_name, "usage":@_program_usage, "exit": @_program_exit}, "argparse":{"get_arg":@_argparse_get_arg, "has_arg":@_argparse_has_arg}, "io": { "apply_color":@_io_apply_color, "print": {"info": @_io_print_info, "error":@_io_print_error, "success":@_io_print_success}},"classID":"UtilsLib 1.0.0"}

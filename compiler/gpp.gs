@@ -66,7 +66,7 @@ if not typeof(get_shell.host_computer.File(args[0])) == "file" then
 	exit("gpp.exe > " + args[0] + " could not be found.")
 else
 	// If we have a relative file path for args[0]
-	if not args[0].indexOf("/") then
+	if args[0].indexOf("/") == null then
 		args[0] = get_shell.host_computer.current_path + "/" + args[0]
 	end if
 	
@@ -130,7 +130,7 @@ code = lib_code + "\n" + clean_code
 streamout = core.io.sout(args[0],code)
 streamout.write
 
-get_shell.build(args[0],args[1])
+print(get_shell.build(args[0],args[1]))
 
 //After pre-processing, restore the source code to the original content
 streamout.text = unclean_code

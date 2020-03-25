@@ -22,6 +22,6 @@ run_program = function(arg)
 	end if
 end function
 
-check_usage("[-input (user:pass || file path)]")
-arg = lib_utils.argparse.get_arg("-input")
+check_usage("[(user:pass || file path)]")
+arg = params[0]
 run_program(arg)

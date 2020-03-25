@@ -86,4 +86,4 @@ _metaxploit_execute_exploit = function(exploit_target, addr, unsafeval, optarg)
 	return result
 end function
 
-lib_metaxploit = {"dependencies": {"lib_utils": false, "metaxploit": false, "get_dependency": @_metaxploit_get_dependency }, "establish_connection": @_metaxploit_establish_connection, "get_metalib": @_metaxploit_get_metalib, "get_metalib_info": @_metaxploit_metalib_info, "execute_exploit": @_metaxploit_execute_exploit}
+lib_metaxploit = {"dependencies": {"lib_utils": false, "metaxploit": false, "get_dependency": @_metaxploit_get_dependency }, "establish_connection": @_metaxploit_establish_connection, "get_metalib": @_metaxploit_get_metalib, "get_metalib_info": @_metaxploit_metalib_info, "execute_exploit": @_metaxploit_execute_exploit, "classID":"MetaxploitLib 1.0.0"}
