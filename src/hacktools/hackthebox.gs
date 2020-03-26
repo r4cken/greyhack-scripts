@@ -17,7 +17,7 @@ check_passwd_access = function(object)
 	else if object_type == "file" then
 		file_object = object
 		// Is our object a folder?
-		if file_object.is_folder then
+		if file_object.is_folder and file_object.is_binary then
 			if file_object.name == "etc" then
 				files = file_object.get_files
 				for filehandle in files
