@@ -268,108 +268,124 @@ choose_access_type = function(selected_address)
 	return {"address": selected_address.key, "exploit": selected}
 end function
 
+get_json_filepath = function(args)
+	// If we have a json file with exploit info, use it, else make one
+	jsonPath = home_dir + "/targets"
+
+	// In case target is a router
+	if args.port then
+		jsonFileName = args.ip + "-" + args.port
+	else
+		jsonFileName = args.ip + "-" + "0"
+	end if
+
+	return jsonPath + "/" + jsonFileName
+end function
+
+load_exploits_from_json = function(filePath)
+	json_exploits = core.io.sin(filePath).read
+	jObject = {}
+	valid_exploits = lib_json.parse(json_exploits,jObject,false)
+	selected_address = choose_vulnerable_address(valid_exploits)
+	final = choose_access_type(selected_address)
+
+	return final
+end function
+
+run_program = function(args)
+	// Minimum requirement to use the program
+	if not args.ip or params.len == 0 then
+		lib_utils.program.usage("[-ip] [-port (opt)]")
+	end if
+
+	metalib = lib_metaxploit.establish_connection(args.ip, args.port)
+	if not metalib then
+		lib_utils.program.exit("Error: Can't establish a net session, check the ip and or port")
+	end if
+	lib_utils.io.print.info("Targeting " + metalib.lib_name + " v" + metalib.version)
+
+	if not get_shell.host_computer.File(args.jsonFilePath) then
+		lib_utils.io.print.info("* Finding usable exploits...")
+		find_valid_vulns("/lib/metaxploit.so", args.ip, args.port)
+		print
+	end if
+
+	// get a selected exploit to run
+	lib_utils.io.print.info("* Found these working exploits...")
+	final = load_exploits_from_json(args.jsonFilePath)
+
+	// number exploits are password change exploits or for routers, a LAN ip
+	if final.exploit.type == "number" then
+		if args.port then
+			args.optarg = "r4cken"
+		else
+			args.optarg = user_input("Target is a router, please supply a LAN ip: ")
+		end if
+	end if
+
+	result = lib_metaxploit.execute_exploit(metalib, final.address, final.exploit.buffer, args.optarg)
+	if not result then 
+		lib_utils.program.exit("Error: Exploit failed")
+	end if
+
+	// Exfiltrated data
+	passwd_file = get_passwd_file(result)
+	bank_files = get_bank_files(result)
+
+	exploit_type = typeof(result)
+	if exploit_type == "shell" then
+		i = 1
+		SupportedActions = {}
+		
+		if passwd_file then
+			SupportedActions[i] = passwd_action(passwd_file)
+			i = i + 1
+		end if
+		
+		if bank_files then
+			SupportedActions[i] = bank_action(bank_files)
+			i = i + 1
+		end if
+		
+		SupportedActions[i] = shell_action(result)
+		choose_action(SupportedActions)
+	else if exploit_type == "computer" then
+		i = 1
+		SupportedActions = {}
+		
+		if passwd_file then
+			SupportedActions[i] = passwd_action(passwd_file)
+			i = i + 1
+		end if
+		
+		if bank_files then
+			SupportedActions[i] = bank_action(bank_files)
+			i = i + 1
+		end if
+		choose_action(SupportedActions)
+	else if exploit_type == "file" then
+		i = 1
+		SupportedActions = {}
+		
+		if passwd_file then
+			SupportedActions[i] = passwd_action(passwd_file)
+			choose_action(SupportedActions)
+		else
+			lib_utils.io.print.info("Recieved filehandle to " + result.path + " unsure what to do with that.")
+		end if
+		
+	else if exploit_type == "number" then
+		lib_utils.io.print.info("Password change made")
+	else
+		lib_utils.program.exit("Error: Unknown type of exploit")
+	end if
+end function
+
 ip = lib_utils.argparse.get_arg("-ip")
 port = lib_utils.argparse.get_arg("-port")
 optarg = false
 
-// Minimum requirement to use the program
-if not ip or params.len == 0 then
-	lib_utils.program.usage("[-ip] [-port (opt)]")
-end if
+args = {"ip":ip, "port": port, "optarg": optarg, "jsonFilePath": null}
+args.jsonFilePath = get_json_filepath(args)
 
-metalib = lib_metaxploit.establish_connection(ip, port)
-if not metalib then
-	lib_utils.program.exit("Error: Can't establish a net session, check the ip and or port")
-end if
-lib_utils.io.print.info("Targeting " + metalib.lib_name + " v" + metalib.version)
-
-// If we have a json file with exploit info, use it, else make one
-jsonPath = home_dir + "/targets"
-
-// In case target is a router
-if port then
-	jsonFileName = ip + "-" + port
-else
-	jsonFileName = ip + "-" + "0"
-end if
-
-if not get_shell.host_computer.File(jsonPath + "/" + jsonFileName) then
-	lib_utils.io.print.info("* Finding usable exploits...")
-	find_valid_vulns("/lib/metaxploit.so", ip, port)
-	print
-end if
-
-// get a selected exploit to run
-lib_utils.io.print.info("* Found these working exploits...")
-jsonFullPath = jsonPath + "/" + jsonFileName
-
-json_exploits = core.io.sin(jsonFullPath).read
-jObject = {}
-valid_exploits = lib_json.parse(json_exploits,jObject,false)
-selected_address = choose_vulnerable_address(valid_exploits)
-final = choose_access_type(selected_address)
-// number exploits are password change exploits or for routers, a LAN ip is needed
-if final.exploit.type == "number" then
-	if port then
-		optarg = "r4cken"
-	else
-		optarg = user_input("Target is a router, please supply a LAN ip: ")
-	end if
-end if
-
-result = lib_metaxploit.execute_exploit(metalib, final.address, final.exploit.buffer, optarg)
-if not result then 
-	lib_utils.program.exit("Error: Exploit failed")
-end if
-
-// Exfiltrated data
-passwd_file = get_passwd_file(result)
-bank_files = get_bank_files(result)
-
-exploit_type = typeof(result)
-if exploit_type == "shell" then
-	i = 1
-	SupportedActions = {}
-	
-	if passwd_file then
-		SupportedActions[i] = passwd_action(passwd_file)
-		i = i + 1
-	end if
-	
-	if bank_files then
-		SupportedActions[i] = bank_action(bank_files)
-		i = i + 1
-	end if
-	
-	SupportedActions[i] = shell_action(result)
-	choose_action(SupportedActions)
-else if exploit_type == "computer" then
-	i = 1
-	SupportedActions = {}
-	
-	if passwd_file then
-		SupportedActions[i] = passwd_action(passwd_file)
-		i = i + 1
-	end if
-	
-	if bank_files then
-		SupportedActions[i] = bank_action(bank_files)
-		i = i + 1
-	end if
-	choose_action(SupportedActions)
-else if exploit_type == "file" then
-	i = 1
-	SupportedActions = {}
-	
-	if passwd_file then
-		SupportedActions[i] = passwd_action(passwd_file)
-		choose_action(SupportedActions)
-	else
-		lib_utils.io.print.info("Recieved filehandle to " + result.path + " unsure what to do with that.")
-	end if
-	
-else if exploit_type == "number" then
-	lib_utils.io.print.info("Password change made")
-else
-	lib_utils.program.exit("Error: Unknown type of exploit")
-end if
+run_program(args)

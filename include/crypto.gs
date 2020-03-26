@@ -21,7 +21,6 @@ _crypto_decipher = function(self, encdata)
 			passwd_dictionary = get_shell.host_computer.File(filePath + fileName)
 			has_entry_already = passwd_dictionary.content.split(char(10)).indexOf(decrypted_password) != null
 			if passwd_dictionary.content.len == 0 then
-				print("First password to go into the file!")
 				passwd_dictionary.set_content(decrypted_password)
 			else if not has_entry_already then
 				updated_dictionary = [passwd_dictionary.content]
@@ -33,16 +32,23 @@ _crypto_decipher = function(self, encdata)
 	
 	cryptolib = self.dependencies.get_dependency()
 	if encdata.len != 2 then
-		exit("decipher: wrong number of arguments")
+		exit("<b>decipher: wrong number of arguments</b>")
 	end if
 	
 	password = cryptolib.decipher(encdata[0], encdata[1])
-	
 	save_to_dictionary(password)
 	return password
 end function
 
 _crypto_decipher_file = function(self, file)
+	print_info = function(text)
+		print("<color=#f0e44e>" + text + "</color>")
+	end function
+
+	print_error = function(text)
+		print("<color=#db3437>" + text + "</color>")
+	end function
+
 	if not file then exit("Error: File doesn't exist")
 	if not file.has_permission("r") then exit("Error: Permission denied")
 	if file.content.len == 0 then exit("Error: File is empty")
@@ -55,19 +61,28 @@ _crypto_decipher_file = function(self, file)
 		encdata = entry.split(":")
 		DecryptedInfo.push({"user": encdata[0], "password": self.decipher(encdata)})
 	end for
-	print("<color=#f0e44e>Deciphering " + file.path + "</color>")
+
+	print_info("Deciphering " + file.path)
 	for entry in DecryptedInfo
 		if not entry.key.password then 
-			print("<color=#db3437>Error: Nothing found for user: " + encdata[0] + "...</color>")
+			print_error("Error: Nothing found for user: " + encdata[0] + "...")
 		else
-			print("<color=#f0e44e>" + entry.key.user + " => " + entry.key.password + "</color>")
+			print_info(entry.key.user + " => " + entry.key.password)
 		end if
 	end for
 end function
 
 _crypto_smtp_user_list = function(self, ip, port)
+	print_info = function(text)
+		print("<color=#f0e44e>" + text + "</color>")
+	end function
+
+	print_error = function(text)
+		print("<color=#db3437>" + text + "</color>")
+	end function
+
 	cryptolib = self.dependencies.get_dependency()
-	print("<color=#f0e44e>Connecting...</color>")
+	print_info("Connecting...")
 	Emails = {}
 	Emails.found = []
 	Emails.notfound = []
@@ -79,11 +94,11 @@ _crypto_smtp_user_list = function(self, ip, port)
 		end if
 		// not a list, its an invalid target service string
 		if typeof(mailinfo) == "string" then 
-			print("<color=#db3437>Error: " + mailinfo + "</color>")
+			print_error("Error: " + mailinfo)
 			return false
 		end if
 		
-		print("<color=#f0e44e>Looking for email addresses...</color>")
+		print_info("Looking for email addresses...")
 		for email in mailinfo
 			user = email[0:email.indexOf(" ")]
 			email_info = email[email.indexOf(" "):]
@@ -94,20 +109,20 @@ _crypto_smtp_user_list = function(self, ip, port)
 			end if
 		end for
 		
-		print("<color=#f0e44e>Found the following " + (Emails.found.len + Emails.notfound.len) + " user(s)</color>")
+		print_info("Found the following " + (Emails.found.len + Emails.notfound.len) + " user(s)")
 		if Emails.found.len > 0 then		
 			for account in Emails.found
-				print("<color=#f0e44e>" + account.user + " => " + account.email)
+				print_info(account.user + " => " + account.email)
 			end for
 		end if
 		
 		if Emails.notfound.len > 0 then
 			for account in Emails.notfound
-				print("<color=#f0e44e>" + account.user + " => " + account.email)
+				print_info(account.user + " => " + account.email)
 			end for
 		end if
 	else
-		print("<color=#db3437>Error: No ip address supplied</color>")
+		print_error("Error: No ip address supplied")
 		return false
 	end if	
 end function

@@ -100,8 +100,9 @@ _json_parse = function(plain_json,jObject,isValues)
 			itemName = itemName + c
 			if c == ":" then
 				itemName = itemName.replace(",","").replace(":","").trim
-				// Json keys are denoted with quotes, we strip them so that the
-				// inserted itemName key is a string, and the json file keeps its key shape
+				// Json keys are denoted with quotes, we strip away them so that 
+				// the inserted itemName key is still a string
+				// but the original json file still keeps them
 				itemName = itemName.replace("""", "").trim
 				isItemName = false
 			end if
@@ -205,7 +206,6 @@ _json_parse = function(plain_json,jObject,isValues)
 		end if
 	end for
 	
-	//the user code is parsed and ready to be returned
 	return jObject
 end function
 

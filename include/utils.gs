@@ -9,25 +9,6 @@ _library_include_lib = function(library)
 	return lib
 end function
 
-_library_metalib_info = function(metalib)
-	if not metalib then return {"name": "none", "version": "none" }
-	return {"name": metalib.lib_name, "version": metalib.version }
-end function
-
-_library_include_metalib = function(self, library)
-	metaxploit = self.include("metaxploit.so")
-	if not metaxploit then return false
-	
-	metalib = metaxploit.load("/lib/" + library)
-	if not metalib then
-		metalib = metaxploit.load(get_shell.host_computer.current_path + "/" + library)
-	end if
-	if not metalib then
-		return false
-	end if
-	return metalib
-end function
-
 _io_apply_color = function(hex, text)
 	if not hex[0] == "#" then hex = "#" + hex
 	if not hex.len == 7 and not hex.len == 9 then return text
